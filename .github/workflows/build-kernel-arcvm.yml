@@ -15,7 +15,7 @@ on:
 
 env:
   git_tag: chromeos-5.10-arcvm
-  version: 5.10.213
+  version: 5.10.215
 
 jobs:
   build:
