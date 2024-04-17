@@ -102,6 +102,9 @@ jobs:
 
       - name: Build Kernel
         working-directory: kernel
+        env:
+          KERNEL_IMAGE_NAME: ${{ matrix.kernel_image_name }}
+          ARCH: ${{ matrix.arch }}
         run: |
           set -a && . ${{ matrix.build_config }}; set +a
           export DEFCONFIG=${{ matrix.defconfig }}
@@ -113,13 +116,9 @@ jobs:
           make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} mrproper
           make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} ${DEFCONFIG} < /dev/null
           scripts/config --file .config -e LTO_CLANG -d LTO_NONE -e LTO_CLANG_THIN -d LTO_CLANG_FULL -e THINLTO
-          make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} -j$(nproc) ${matrix.kernel_image_name} modules prepare-objtool
+          make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} -j$(nproc) ${KERNEL_IMAGE_NAME} modules prepare-objtool
 
-          if [[ "${{ matrix.kernel_image_name }}" == "bzImage" ]]; then
-            echo "file_path=${PWD}/arch/x86/boot/${{ matrix.kernel_image_name }}" >> $GITHUB_ENV
-          else
-            echo "file_path=${PWD}/arch/arm64/boot/${{ matrix.kernel_image_name }}" >> $GITHUB_ENV
-          fi
+          echo "file_path=${PWD}/arch/${ARCH}/boot/${KERNEL_IMAGE_NAME}" >> $GITHUB_ENV
 
       - name: Upload kernel-ARCVM-${{ matrix.arch }}-${{ env.version }}
         uses: actions/upload-artifact@v4
