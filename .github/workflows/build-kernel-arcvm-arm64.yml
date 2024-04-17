@@ -1,4 +1,4 @@
-name: Build Kernel - ChromeOS ARCVM
+name: Build Kernel - ChromeOS ARCVM ARM64
 on:
   push:
     branches: ["main", "ci", "checkci"]
@@ -19,13 +19,13 @@ jobs:
     strategy:
       matrix:
         arch: [arm64]
-        version: ["5.10.213"]
+        version: ["5.10.209"]
         include:
           - arch: arm64
             git_tag: chromeos-5.10-arcvm
             file_name: "Image"
 
-    name: Build ChromeOS ARCVM kernel
+    name: Build ChromeOS ARCVM ARM64 kernel
     runs-on: ubuntu-20.04
     env:
       LTO: thin
@@ -108,7 +108,7 @@ jobs:
           scripts/config --file .config -e LTO_CLANG -d LTO_NONE -e LTO_CLANG_THIN -d LTO_CLANG_FULL -e THINLTO
           make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} -j$(nproc) Image modules prepare-objtool
 
-          echo "file_path=${PWD}/arch/x86/boot/Image" >> $GITHUB_ENV
+          echo "file_path=${PWD}/arch/arm64/boot/Image" >> $GITHUB_ENV
 
       - name: Upload kernel-ARCVM-${{ matrix.arch }}-${{ matrix.version }}
         uses: actions/upload-artifact@v4
