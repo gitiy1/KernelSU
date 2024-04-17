@@ -1,4 +1,4 @@
-name: Build Kernel - ChromeOS ARCVM ARM64
+name: Build Kernel - ChromeOS ARCVM
 on:
   push:
     branches: ["main", "ci", "checkci"]
@@ -13,19 +13,26 @@ on:
   workflow_call:
   workflow_dispatch:
 
+env:
+  git_tag: chromeos-5.10-arcvm
+  version: 5.10.213
+
 jobs:
   build:
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && !github.event.pull_request.draft)
     strategy:
       matrix:
-        arch: [arm64]
-        version: ["5.10.209"]
         include:
+          - arch: x86_64
+            kernel_image_name: bzImage
+            build_config: build.config.gki.x86_64
+            defconfig: x86_64_defconfig
           - arch: arm64
-            git_tag: chromeos-5.10-arcvm
-            file_name: "Image"
+            kernel_image_name: Image
+            build_config: build.config.gki.aarch64
+            defconfig: defconfig
 
-    name: Build ChromeOS ARCVM ARM64 kernel
+    name: Build ChromeOS ARCVM kernel
     runs-on: ubuntu-20.04
     env:
       LTO: thin
@@ -66,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup kernel source
-        run: git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ matrix.git_tag }} --depth=1
+        run: git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ env.git_tag }} --depth=1
 
       - name: Setup KernelSU
         working-directory: kernel
@@ -96,8 +103,8 @@ jobs:
       - name: Build Kernel
         working-directory: kernel
         run: |
-          set -a && . build.config.gki.aarch64; set +a
-          export DEFCONFIG=defconfig
+          set -a && . ${{ matrix.build_config }}; set +a
+          export DEFCONFIG=${{ matrix.defconfig }}
           if [ ! -z ${{ vars.EXPECTED_SIZE }} ] && [ ! -z ${{ vars.EXPECTED_HASH }} ]; then
             export KSU_EXPECTED_SIZE=${{ vars.EXPECTED_SIZE }}
             export KSU_EXPECTED_HASH=${{ vars.EXPECTED_HASH }}
@@ -106,12 +113,16 @@ jobs:
           make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} mrproper
           make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} ${DEFCONFIG} < /dev/null
           scripts/config --file .config -e LTO_CLANG -d LTO_NONE -e LTO_CLANG_THIN -d LTO_CLANG_FULL -e THINLTO
-          make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} -j$(nproc) Image modules prepare-objtool
+          make LLVM=1 LLVM_IAS=1 DEPMOD=depmod DTC=dtc O=${PWD} -j$(nproc) ${matrix.kernel_image_name} modules prepare-objtool
 
-          echo "file_path=${PWD}/arch/arm64/boot/Image" >> $GITHUB_ENV
+          if [[ "${{ matrix.kernel_image_name }}" == "bzImage" ]]; then
+            echo "file_path=${PWD}/arch/x86/boot/${{ matrix.kernel_image_name }}" >> $GITHUB_ENV
+          else
+            echo "file_path=${PWD}/arch/arm64/boot/${{ matrix.kernel_image_name }}" >> $GITHUB_ENV
+          fi
 
-      - name: Upload kernel-ARCVM-${{ matrix.arch }}-${{ matrix.version }}
+      - name: Upload kernel-ARCVM-${{ matrix.arch }}-${{ env.version }}
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-ARCVM-${{ matrix.arch }}-${{ matrix.version }}
+          name: kernel-ARCVM-${{ matrix.arch }}-${{ env.version }}
           path: "${{ env.file_path }}"
