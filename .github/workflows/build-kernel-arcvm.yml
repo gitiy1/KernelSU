@@ -15,7 +15,6 @@ on:
 
 env:
   git_tag: chromeos-5.10-arcvm
-  version: 5.10.215
 
 jobs:
   build:
@@ -74,6 +73,14 @@ jobs:
 
       - name: Setup kernel source
         run: git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ env.git_tag }} --depth=1
+
+      - name: Extract version from Makefile
+        working-directory: kernel
+        run: |
+          VERSION=$(grep -E '^VERSION = ' Makefile | awk '{print $3}')
+          PATCHLEVEL=$(grep -E '^PATCHLEVEL = ' Makefile | awk '{print $3}')
+          SUBLEVEL=$(grep -E '^SUBLEVEL = ' Makefile | awk '{print $3}')
+          echo "version=$VERSION.$PATCHLEVEL.$SUBLEVEL" >> $GITHUB_ENV
 
       - name: Setup KernelSU
         working-directory: kernel
