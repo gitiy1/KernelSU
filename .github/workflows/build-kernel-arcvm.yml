@@ -80,8 +80,9 @@ jobs:
           VERSION=$(grep -E '^VERSION = ' Makefile | awk '{print $3}')
           PATCHLEVEL=$(grep -E '^PATCHLEVEL = ' Makefile | awk '{print $3}')
           SUBLEVEL=$(grep -E '^SUBLEVEL = ' Makefile | awk '{print $3}')
+          echo "ChromeOS ARCVM Linux kernel version: $VERSION.$PATCHLEVEL.$SUBLEVEL"
           echo "version=$VERSION.$PATCHLEVEL.$SUBLEVEL" >> $GITHUB_ENV
-
+          
       - name: Setup KernelSU
         working-directory: kernel
         run: |
@@ -103,9 +104,9 @@ jobs:
 
           echo "[+] KernelSU setup done."
           cd $GITHUB_WORKSPACE/KernelSU
-          VERSION=$(($(git rev-list --count HEAD) + 10200))
-          echo "VERSION: $VERSION"
-          echo "kernelsu_version=$VERSION" >> $GITHUB_ENV
+          KSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
+          echo "KernelSU version: $KSU_VERSION"
+          echo "kernelsu_version=$KSU_VERSION" >> $GITHUB_ENV
 
       - name: Build Kernel
         working-directory: kernel
