@@ -27,7 +27,7 @@ jobs:
             build_config: build.config.gki.x86_64
             defconfig: x86_64_arcvm_defconfig
           - arch: arm64
-            kernel_image_name: Image.lz4
+            kernel_image_name: Image
             build_config: build.config.gki.aarch64
             defconfig: arm64_arcvm_defconfig
 
@@ -83,30 +83,30 @@ jobs:
           echo "ChromeOS ARCVM Linux kernel version: $VERSION.$PATCHLEVEL.$SUBLEVEL"
           echo "version=$VERSION.$PATCHLEVEL.$SUBLEVEL" >> $GITHUB_ENV
           
-      - name: Setup KernelSU
-        working-directory: kernel
-        run: |
-          echo "[+] KernelSU setup"
-          KERNEL_ROOT=$GITHUB_WORKSPACE/kernel
-          echo "[+] KERNEL_ROOT: $KERNEL_ROOT"
-          echo "[+] Copy KernelSU driver to $KERNEL_ROOT/drivers"
-          ln -sf $GITHUB_WORKSPACE/KernelSU/kernel $KERNEL_ROOT/drivers/kernelsu
+      # - name: Setup KernelSU
+      #   working-directory: kernel
+      #   run: |
+      #     echo "[+] KernelSU setup"
+      #     KERNEL_ROOT=$GITHUB_WORKSPACE/kernel
+      #     echo "[+] KERNEL_ROOT: $KERNEL_ROOT"
+      #     echo "[+] Copy KernelSU driver to $KERNEL_ROOT/drivers"
+      #     ln -sf $GITHUB_WORKSPACE/KernelSU/kernel $KERNEL_ROOT/drivers/kernelsu
 
-          echo "[+] Add KernelSU driver to Makefile"
-          DRIVER_MAKEFILE=$KERNEL_ROOT/drivers/Makefile
-          grep -q "kernelsu" $DRIVER_MAKEFILE || echo "obj-y += kernelsu/" >> $DRIVER_MAKEFILE
+      #     echo "[+] Add KernelSU driver to Makefile"
+      #     DRIVER_MAKEFILE=$KERNEL_ROOT/drivers/Makefile
+      #     grep -q "kernelsu" $DRIVER_MAKEFILE || echo "obj-y += kernelsu/" >> $DRIVER_MAKEFILE
 
-          echo "[+] Apply KernelSU patches"
-          cd $KERNEL_ROOT && git apply $GITHUB_WORKSPACE/KernelSU/.github/patches/5.10/*.patch || echo "[-] No patch found"
+      #     echo "[+] Apply KernelSU patches"
+      #     cd $KERNEL_ROOT && git apply $GITHUB_WORKSPACE/KernelSU/.github/patches/5.10/*.patch || echo "[-] No patch found"
 
-          echo "[+] Patch script/setlocalversion"
-          sed -i 's/-dirty//g' $KERNEL_ROOT/scripts/setlocalversion
+      #     echo "[+] Patch script/setlocalversion"
+      #     sed -i 's/-dirty//g' $KERNEL_ROOT/scripts/setlocalversion
 
-          echo "[+] KernelSU setup done."
-          cd $GITHUB_WORKSPACE/KernelSU
-          KSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
-          echo "KernelSU version: $KSU_VERSION"
-          echo "kernelsu_version=$KSU_VERSION" >> $GITHUB_ENV
+      #     echo "[+] KernelSU setup done."
+      #     cd $GITHUB_WORKSPACE/KernelSU
+      #     KSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
+      #     echo "KernelSU version: $KSU_VERSION"
+      #     echo "kernelsu_version=$KSU_VERSION" >> $GITHUB_ENV
 
       - name: Build Kernel
         working-directory: kernel
