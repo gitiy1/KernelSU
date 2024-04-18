@@ -25,11 +25,11 @@ jobs:
           - arch: x86_64
             kernel_image_name: bzImage
             build_config: build.config.gki.x86_64
-            defconfig: x86_64_defconfig
+            defconfig: x86_64_arcvm_defconfig
           - arch: arm64
             kernel_image_name: Image.lz4
             build_config: build.config.gki.aarch64
-            defconfig: defconfig
+            defconfig: arm64_arcvm_defconfig
 
     name: Build ChromeOS ARCVM kernel
     runs-on: ubuntu-20.04
