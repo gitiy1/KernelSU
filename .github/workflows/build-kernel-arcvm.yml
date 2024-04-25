@@ -80,10 +80,6 @@ jobs:
             echo "LLVM version: $(clang --version | head -n 1)"
       
       - name: Setup kernel source
-        with:
-          githubToken: ${{ github.token }}
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
         run: | 
           git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ env.git_tag }} --depth=1
           echo "Kernel source setup done."
