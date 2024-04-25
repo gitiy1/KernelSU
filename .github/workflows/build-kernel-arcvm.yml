@@ -80,6 +80,8 @@ jobs:
             sudo ln -s --force /usr/bin/llvm-objcopy-$LLVM_VERSION /usr/bin/llvm-objcopy
             sudo ln -s --force /usr/bin/llvm-readelf-$LLVM_VERSION /usr/bin/llvm-readelf
             sudo ln -s --force /usr/bin/clang++-$LLVM_VERSION /usr/bin/clang++
+          run: |
+            echo "LLVM version: $(clang --version | head -n 1)"
       
       - name: Setup kernel source
         with:
@@ -87,6 +89,8 @@ jobs:
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
         install: git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ env.git_tag }} --depth=1
+        run: |
+          echo "Kernel source setup done."
       
       - name: Extract version from Makefile
         with:
@@ -98,9 +102,10 @@ jobs:
           VERSION=$(grep -E '^VERSION = ' Makefile | awk '{print $3}')
           PATCHLEVEL=$(grep -E '^PATCHLEVEL = ' Makefile | awk '{print $3}')
           SUBLEVEL=$(grep -E '^SUBLEVEL = ' Makefile | awk '{print $3}')
-          echo "ChromeOS ARCVM Linux kernel version: $VERSION.$PATCHLEVEL.$SUBLEVEL"
           echo "version=$VERSION.$PATCHLEVEL.$SUBLEVEL" >> $GITHUB_ENV
-      
+        run: |
+          echo "ChromeOS ARCVM Linux kernel version: ${{ env.version }}"
+          
       - name: Setup KernelSU
         with:
           githubToken: ${{ github.token }}
@@ -127,8 +132,9 @@ jobs:
           echo "[+] KernelSU setup done."
           cd $GITHUB_WORKSPACE/KernelSU
           KSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
-          echo "KernelSU version: $KSU_VERSION"
           echo "kernelsu_version=$KSU_VERSION" >> $GITHUB_ENV
+        run: |
+          echo "KernelSU version: ${{ env.ksu_version }}"
 
       - name: Build Kernel
         working-directory: kernel
