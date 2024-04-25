@@ -56,7 +56,7 @@ jobs:
           githubToken: ${{ github.token }}
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-          install: |
+          install: | 
             apt-get update -q -y
             apt-get install -y --no-install-recommends bc \
                 bison build-essential ca-certificates flex git gnupg \
@@ -80,7 +80,7 @@ jobs:
             sudo ln -s --force /usr/bin/llvm-objcopy-$LLVM_VERSION /usr/bin/llvm-objcopy
             sudo ln -s --force /usr/bin/llvm-readelf-$LLVM_VERSION /usr/bin/llvm-readelf
             sudo ln -s --force /usr/bin/clang++-$LLVM_VERSION /usr/bin/clang++
-          run: |
+          run: | 
             echo "LLVM version: $(clang --version | head -n 1)"
       
       - name: Setup kernel source
@@ -88,9 +88,9 @@ jobs:
           githubToken: ${{ github.token }}
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
-        install: |
+        install: | 
           git clone https://chromium.googlesource.com/chromiumos/third_party/kernel.git -b ${{ env.git_tag }} --depth=1
-        run: |
+        run: | 
           echo "Kernel source setup done."
       
       - name: Extract version from Makefile
@@ -99,12 +99,12 @@ jobs:
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
         working-directory: kernel
-        install: |
+        install: | 
           VERSION=$(grep -E '^VERSION = ' Makefile | awk '{print $3}')
           PATCHLEVEL=$(grep -E '^PATCHLEVEL = ' Makefile | awk '{print $3}')
           SUBLEVEL=$(grep -E '^SUBLEVEL = ' Makefile | awk '{print $3}')
           echo "version=$VERSION.$PATCHLEVEL.$SUBLEVEL" >> $GITHUB_ENV
-        run: |
+        run: | 
           echo "ChromeOS ARCVM Linux kernel version: ${{ env.version }}"
           
       - name: Setup KernelSU
@@ -113,7 +113,7 @@ jobs:
           dockerRunArgs: |
             --volume "${PWD}/artifacts:/artifacts"
         working-directory: kernel
-        install: |
+        install: | 
           echo "[+] KernelSU setup"
           KERNEL_ROOT=$GITHUB_WORKSPACE/kernel
           echo "[+] KERNEL_ROOT: $KERNEL_ROOT"
@@ -134,7 +134,7 @@ jobs:
           cd $GITHUB_WORKSPACE/KernelSU
           KSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
           echo "kernelsu_version=$KSU_VERSION" >> $GITHUB_ENV
-        run: |
+        run: | 
           echo "KernelSU version: ${{ env.ksu_version }}"
 
       - name: Build Kernel
@@ -142,7 +142,7 @@ jobs:
         env:
           KERNEL_IMAGE_NAME: ${{ matrix.kernel_image_name }}
           ARCH: ${{ matrix.arch }}
-        run: |
+        run: | 
           set -a && . ${{ matrix.build_config }}; set +a
           export DEFCONFIG=${{ matrix.defconfig }}
           if [ ! -z ${{ vars.EXPECTED_SIZE }} ] && [ ! -z ${{ vars.EXPECTED_HASH }} ]; then
